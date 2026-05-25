@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 DTN v5.0 完整演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+        
+        .tab:hover, .tab.active {
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            color: #000;
+        }
+        
+        .panel {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel.active {
+            display: block;
+        }
+        
+        .panel-title {
+            font-size: 1.5em;
+            color: #00d4ff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .demo-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .demo-card h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+        }
+        
+        .demo-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .demo-btn {
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .demo-output {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            color: #00ff88;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .health-bar {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #00ff88);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+        
+        .node-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .node-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .node-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .type-skill { background: #00d4ff; color: #000; }
+        .type-rule { background: #ff6600; color: #000; }
+        .type-data { background: #00ff88; color: #000; }
+        .type-func { background: #ff00ff; color: #000; }
+        
+        .chat-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .chat-user {
+            background: rgba(0, 212, 255, 0.2);
+            text-align: right;
+        }
+        
+        .chat-bot {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .chat-role {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 DTN v5.0 完整演示</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">总节点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statSkills">0</div>
+                <div class="stat-label">技能节点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statRules">0</div>
+                <div class="stat-label">规则节点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statFuncs">0</div>
+                <div class="stat-label">功能节点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statHealth">0</div>
+                <div class="stat-label">健康度</div>
+            </div>
+        </div>
+        
+        <div class="health-bar">
+            <div class="health-fill" id="healthBar" style="width: 0%">0%</div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showPanel('overview')">📊 总览</button>
+            <button class="tab" onclick="showPanel('reasoning')">🧠 推理</button>
+            <button class="tab" onclick="showPanel('generation')">✨ 生成</button>
+            <button class="tab" onclick="showPanel('analysis')">📈 分析</button>
+            <button class="tab" onclick="showPanel('functions')">⚙️ 功能</button>
+            <button class="tab" onclick="showPanel('chat')">💬 对话</button>
+        </div>
+        
+        <div id="overview" class="panel active">
+            <div class="panel-title">📊 系统总览</div>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>🎯 节点列表</h3>
+                    <div class="node-list" id="nodeList"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>📈 执行历史</h3>
+                    <button class="demo-btn" onclick="showHistory()">查看历史</button>
+                    <div class="demo-output" id="historyOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>🔧 系统操作</h3>
+                    <button class="demo-btn" onclick="initSystem()">初始化系统</button>
+                    <button class="demo-btn" onclick="runHealthCheck()">健康检查</button>
+                    <button class="demo-btn" onclick="clearHistory()">清空历史</button>
+                    <div class="demo-output" id="systemOutput"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="reasoning" class="panel">
+            <div class="panel-title">🧠 推理技能</div>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>传递推理</h3>
+                    <p style="color: #888; margin-bottom: 10px;">如果 A→B 且 B→C，则 A→C</p>
+                    <button class="demo-btn" onclick="runTransitivity()">执行推理</button>
+                    <div class="demo-output" id="transitivityOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>归纳推理</h3>
+                    <p style="color: #888; margin-bottom: 10px;">从具体案例中总结规律</p>
+                    <button class="demo-btn" onclick="runInduction()">执行推理</button>
+                    <div class="demo-output" id="inductionOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>演绎推理</h3>
+                    <p style="color: #888; margin-bottom: 10px;">从一般规则推导具体结论</p>
+                    <button class="demo-btn" onclick="runDeduction()">执行推理</button>
+                    <div class="demo-output" id="deductionOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>因果推理</h3>
+                    <p style="color: #888; margin-bottom: 10px;">分析因果关系</p>
+                    <button class="demo-btn" onclick="runCausal()">执行推理</button>
+                    <div class="demo-output" id="causalOutput"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="generation" class="panel">
+            <div class="panel-title">✨ 生成技能</div>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>写诗</h3>
+                    <input type="text" class="demo-input" id="poetryTheme" placeholder="主题" value="春天">
+                    <select class="demo-input" id="poetryStyle">
+                        <option value="五言">五言</option>
+                        <option value="七言">七言</option>
+                    </select>
+                    <button class="demo-btn" onclick="generatePoetry()">生成</button>
+                    <div class="demo-output" id="poetryOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>写文章</h3>
+                    <input type="text" class="demo-input" id="articleTopic" placeholder="主题" value="人工智能">
+                    <button class="demo-btn" onclick="generateArticle()">生成</button>
+                    <div class="demo-output" id="articleOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>创意生成</h3>
+                    <input type="text" class="demo-input" id="creativityProblem" placeholder="问题" value="如何提高效率">
+                    <button class="demo-btn" onclick="generateIdeas()">生成创意</button>
+                    <div class="demo-output" id="creativityOutput"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="analysis" class="panel">
+            <div class="panel-title">📈 分析技能</div>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>情感分析</h3>
+                    <input type="text" class="demo-input" id="sentimentText" placeholder="输入文本" value="今天天气真好，我很开心！">
+                    <button class="demo-btn" onclick="analyzeSentiment()">分析</button>
+                    <div class="demo-output" id="sentimentOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>时间序列分析</h3>
+                    <input type="text" class="demo-input" id="timeSeriesData" placeholder="数据（逗号分隔）" value="10,12,15,14,18,20,22">
+                    <button class="demo-btn" onclick="analyzeTimeSeries()">分析</button>
+                    <div class="demo-output" id="timeSeriesOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>概率计算</h3>
+                    <input type="number" class="demo-input" id="probPrior" placeholder="先验概率" value="0.3" step="0.1">
+                    <input type="number" class="demo-input" id="probLikelihood" placeholder="似然" value="0.8" step="0.1">
+                    <input type="number" class="demo-input" id="probEvidence" placeholder="证据" value="0.5" step="0.1">
+                    <button class="demo-btn" onclick="calculateBayes()">贝叶斯计算</button>
+                    <div class="demo-output" id="probabilityOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>聚类分析</h3>
+                    <input type="number" class="demo-input" id="clusterK" placeholder="聚类数 K" value="3">
+                    <button class="demo-btn" onclick="runClustering()">执行聚类</button>
+                    <div class="demo-output" id="clusteringOutput"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="functions" class="panel">
+            <div class="panel-title">⚙️ 功能节点</div>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>记忆存储</h3>
+                    <input type="text" class="demo-input" id="memoryKey" placeholder="键" value="name">
+                    <input type="text" class="demo-input" id="memoryValue" placeholder="值" value="张三">
+                    <button class="demo-btn" onclick="setMemory()">存储</button>
+                    <button class="demo-btn" onclick="getMemory()">读取</button>
+                    <div class="demo-output" id="memoryOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>缓存管理</h3>
+                    <input type="text" class="demo-input" id="cacheKey" placeholder="键" value="data1">
+                    <input type="text" class="demo-input" id="cacheValue" placeholder="值" value="测试数据">
+                    <button class="demo-btn" onclick="setCache()">存储</button>
+                    <button class="demo-btn" onclick="getCache()">读取</button>
+                    <button class="demo-btn" onclick="cacheStats()">统计</button>
+                    <div class="demo-output" id="cacheOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>日志记录</h3>
+                    <input type="text" class="demo-input" id="logMessage" placeholder="日志消息" value="系统启动">
+                    <select class="demo-input" id="logLevel">
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="WARNING">WARNING</option>
+                        <option value="ERROR">ERROR</option>
+                    </select>
+                    <button class="demo-btn" onclick="addLog()">添加日志</button>
+                    <button class="demo-btn" onclick="getLogs()">查看日志</button>
+                    <div class="demo-output" id="logOutput"></div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>数据转换</h3>
+                    <input type="text" class="demo-input" id="transformData" placeholder="数据" value="a,b,c">
+                    <button class="demo-btn" onclick="transformToList()">转列表</button>
+                    <button class="demo-btn" onclick="transformToDict()">转字典</button>
+                    <button class="demo-btn" onclick="transformUnique()">去重</button>
+                    <div class="demo-output" id="transformOutput"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="chat" class="panel">
+            <div class="panel-title">💬 对话演示</div>
+            
+            <div class="demo-card">
+                <h3>智能对话</h3>
+                <div class="chat-container" id="chatContainer"></div>
+                <input type="text" class="demo-input" id="chatInput" placeholder="输入消息..." onkeypress="if(event.key==='Enter')sendMessage()">
+                <button class="demo-btn" onclick="sendMessage()">发送</button>
+                <button class="demo-btn" onclick="clearChat()">清空对话</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const NodeType = {
+            NODE: 'node',
+            SKILL: 'skill',
+            RULE: 'rule',
+            DATA: 'data',
+            FUNC: 'func'
+        };
+        
+        class Node {
+            constructor(config = {}) {
+                this.id = Math.random().toString(36).substr(2, 8);
+                this.config = config;
+                this.name = config.name || this.constructor.name;
+                this.enabled = config.enabled !== false;
+            }
+            getId() { return this.id; }
+            getName() { return this.name; }
+            getType() { return NodeType.NODE; }
+            is_enabled() { return this.enabled; }
+        }
+        
+        class SkillNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.usageCount = 0;
+            }
+            getType() { return NodeType.SKILL; }
+            incrementUsage() { this.usageCount++; }
+        }
+        
+        class RuleNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.rules = [];
+            }
+            getType() { return NodeType.RULE; }
+            addRule(rule) { this.rules.push(rule); }
+        }
+        
+        class DataNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.data = {};
+            }
+            getType() { return NodeType.DATA; }
+            set(key, value) { this.data[key] = value; }
+            get(key) { return this.data[key]; }
+        }
+        
+        class FuncNode extends Node {
+            constructor(config = {}) {
+                super(config);
+            }
+            getType() { return NodeType.FUNC; }
+            execute(inputData) {
+                return this._execute(inputData);
+            }
+        }
+        
+        class NodeRegistry {
+            constructor() {
+                this.nodes = {};
+                this.nodesByType = {
+                    [NodeType.SKILL]: [],
+                    [NodeType.RULE]: [],
+                    [NodeType.DATA]: [],
+                    [NodeType.FUNC]: []
+                };
+            }
+            register(node) {
+                const nodeId = node.getId();
+                this.nodes[nodeId] = node;
+                const nodeType = node.getType();
+                if (nodeType in this.nodesByType) {
+                    this.nodesByType[nodeType].push(nodeId);
+                }
+                return true;
+            }
+            getNode(nodeId) { return this.nodes[nodeId]; }
+            getNodesByType(type) {
+                return this.nodesByType[type].map(id => this.nodes[id]);
+            }
+            getStats() {
+                return {
+                    totalNodes: Object.keys(this.nodes).length,
+                    skillNodes: this.nodesByType[NodeType.SKILL].length,
+                    ruleNodes: this.nodesByType[NodeType.RULE].length,
+                    dataNodes: this.nodesByType[NodeType.DATA].length,
+                    funcNodes: this.nodesByType[NodeType.FUNC].length
+                };
+            }
+        }
+        
+        class NodeScheduler {
+            constructor(registry) {
+                this.registry = registry;
+                this.executionHistory = [];
+            }
+            executeNode(nodeId, inputData) {
+                const node = this.registry.getNode(nodeId);
+                if (!node) throw new Error(`节点不存在: ${nodeId}`);
+                const result = node.execute ? node.execute(inputData) : node._execute(inputData);
+                this.executionHistory.push({
+                    nodeId,
+                    nodeName: node.getName(),
+                    nodeType: node.getType(),
+                    timestamp: Date.now(),
+                    success: true
+                });
+                return result;
+            }
+            executeByName(name, inputData) {
+                const nodes = Object.values(this.registry.nodes);
+                const node = nodes.find(n => n.getName() === name);
+                if (!node) throw new Error(`节点不存在: ${name}`);
+                return this.executeNode(node.getId(), inputData);
+            }
+            getHistory() { return this.executionHistory; }
+            clearHistory() { this.executionHistory = []; }
+        }
+        
+        let registry, scheduler;
+        
+        function initSystem() {
+            registry = new NodeRegistry();
+            scheduler = new NodeScheduler(registry);
+            
+            const skills = [
+                new TransitivitySkill({ name: '传递推理' }),
+                new InductionSkill({ name: '归纳推理' }),
+                new DeductionSkill({ name: '演绎推理' }),
+                new PoetrySkill({ name: '写诗' }),
+                new SentimentSkill({ name: '情感分析' }),
+                new DialogueSkill({ name: '对话' })
+            ];
+            
+            const rules = [new KnowledgeBase({ name: '知识库' })];
+            const dataNodes = [new DataNode({ name: '数据存储' })];
+            const funcs = [
+                new MemoryFunc({ name: '记忆' }),
+                new CacheFunc({ name: '缓存' }),
+                new LoggerFunc({ name: '日志' })
+            ];
+            
+            for (const node of [...skills, ...rules, ...dataNodes, ...funcs]) {
+                registry.register(node);
+            }
+            
+            updateStats();
+            updateNodeList();
+            document.getElementById('systemOutput').textContent = '✅ 系统初始化完成！\n已加载 ' + registry.getStats().totalNodes + ' 个节点';
+        }
+        
+        function updateStats() {
+            const stats = registry.getStats();
+            document.getElementById('statTotal').textContent = stats.totalNodes;
+            document.getElementById('statSkills').textContent = stats.skillNodes;
+            document.getElementById('statRules').textContent = stats.ruleNodes;
+            document.getElementById('statFuncs').textContent = stats.funcNodes;
+            
+            let health = 0;
+            if (stats.skillNodes >= 3) health += 30;
+            if (stats.ruleNodes >= 1) health += 20;
+            if (stats.dataNodes >= 1) health += 20;
+            if (stats.totalNodes >= 5) health += 15;
+            if (stats.funcNodes >= 1) health += 15;
+            
+            document.getElementById('statHealth').textContent = health;
+            document.getElementById('healthBar').style.width = health + '%';
+            document.getElementById('healthBar').textContent = health + '%';
+        }
+        
+        function updateNodeList() {
+            const list = document.getElementById('nodeList');
+            const nodes = Object.values(registry.nodes);
+            
+            list.innerHTML = nodes.map(node => {
+                const type = node.getType();
+                const typeClass = 'type-' + type;
+                return `<div class="node-item">
+                    <span class="node-type ${typeClass}">${type}</span>
+                    <span>${node.getName()}</span>
+                </div>`;
+            }).join('');
+        }
+        
+        function showPanel(panelId) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function showHistory() {
+            const history = scheduler.getHistory();
+            let output = `执行历史 (${history.length} 条记录)\n\n`;
+            history.forEach((h, i) => {
+                output += `${i + 1}. ${h.nodeName} (${h.nodeType})\n`;
+            });
+            document.getElementById('historyOutput').textContent = output;
+        }
+        
+        function runHealthCheck() {
+            const stats = registry.getStats();
+            let output = '健康度检查\n\n';
+            let health = 0;
+            
+            if (stats.skillNodes >= 3) { health += 30; output += '✓ 技能节点充足 (+30)\n'; }
+            else { output += '✗ 技能节点不足\n'; }
+            
+            if (stats.ruleNodes >= 1) { health += 20; output += '✓ 规则节点存在 (+20)\n'; }
+            else { output += '✗ 缺少规则节点\n'; }
+            
+            if (stats.dataNodes >= 1) { health += 20; output += '✓ 数据节点存在 (+20)\n'; }
+            else { output += '✗ 缺少数据节点\n'; }
+            
+            if (stats.totalNodes >= 5) { health += 15; output += '✓ 节点数量充足 (+15)\n'; }
+            else { output += '✗ 节点数量不足\n'; }
+            
+            if (stats.funcNodes >= 1) { health += 15; output += '✓ 功能节点存在 (+15)\n'; }
+            else { output += '✗ 缺少功能节点\n'; }
+            
+            output += `\n健康分数: ${health}/100`;
+            document.getElementById('systemOutput').textContent = output;
+        }
+        
+        function clearHistory() {
+            scheduler.clearHistory();
+            document.getElementById('historyOutput').textContent = '历史已清空';
+        }
+        
+        class TransitivitySkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const rules = inputData.rules || [];
+                const newRules = [];
+                for (const r1 of rules) {
+                    if (r1.predicate === '是') {
+                        for (const r2 of rules) {
+                            if (r2.subject === r1.obj && r2.predicate === '有') {
+                                newRules.push({ subject: r1.subject, predicate: '有', obj: r2.obj });
+                            }
+                        }
+                    }
+                }
+                return { success: true, newRules, count: newRules.length };
+            }
+        }
+        
+        class InductionSkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const cases = inputData.cases || [];
+                const patterns = {};
+                for (const c of cases) {
+                    const key = c.predicate + '→' + c.obj;
+                    patterns[key] = (patterns[key] || 0) + 1;
+                }
+                return { success: true, patterns, count: Object.keys(patterns).length };
+            }
+        }
+        
+        class DeductionSkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const rules = inputData.rules || [];
+                const facts = inputData.facts || [];
+                const conclusions = [];
+                for (const fact of facts) {
+                    for (const rule of rules) {
+                        if (fact.subject === rule.subject && fact.predicate === rule.predicate) {
+                            conclusions.push({ subject: fact.subject, predicate: rule.conclusion || '是', obj: rule.obj });
+                        }
+                    }
+                }
+                return { success: true, conclusions, count: conclusions.length };
+            }
+        }
+        
+        class PoetrySkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const theme = inputData.theme || '自然';
+                const style = inputData.style || '五言';
+                const lines = inputData.lines || 4;
+                const poem = [];
+                for (let i = 0; i < lines; i++) {
+                    poem.push(`${theme}之句${i + 1}`);
+                }
+                return { success: true, theme, style, poem };
+            }
+        }
+        
+        class SentimentSkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const text = inputData.text || '';
+                const positive = ['好', '棒', '优秀', '喜欢', '爱', '开心'];
+                const negative = ['坏', '差', '糟糕', '讨厌', '恨', '伤心'];
+                let pos = 0, neg = 0;
+                for (const w of positive) if (text.includes(w)) pos++;
+                for (const w of negative) if (text.includes(w)) neg++;
+                let sentiment = 'neutral', label = '中性';
+                if (pos > neg) { sentiment = 'positive'; label = '积极'; }
+                else if (neg > pos) { sentiment = 'negative'; label = '消极'; }
+                return { success: true, text, sentiment, label, pos, neg };
+            }
+        }
+        
+        class DialogueSkill extends SkillNode {
+            constructor(config) {
+                super(config);
+                this.responses = {
+                    '你好': '你好！有什么可以帮助你的吗？',
+                    '再见': '再见！祝你愉快！',
+                    '谢谢': '不客气！'
+                };
+                this.context = [];
+            }
+            execute(inputData) {
+                this.incrementUsage();
+                const message = inputData.message || '';
+                this.context.push({ role: 'user', message });
+                const response = this.responses[message] || `我理解你说的是：${message}`;
+                this.context.push({ role: 'bot', message: response });
+                return { success: true, response, context: this.context };
+            }
+        }
+        
+        class KnowledgeBase extends RuleNode {
+            execute(inputData) {
+                const action = inputData.action || 'list';
+                if (action === 'add') {
+                    this.addRule(inputData.rule);
+                    return { success: true, message: '规则已添加' };
+                }
+                return { success: true, rules: this.rules, count: this.rules.length };
+            }
+        }
+        
+        class MemoryFunc extends FuncNode {
+            constructor(config) {
+                super(config);
+                this.storage = {};
+            }
+            _execute(inputData) {
+                const action = inputData.action || 'get';
+                if (action === 'set') {
+                    this.storage[inputData.key] = inputData.value;
+                    return { success: true, message: `已设置 ${inputData.key}` };
+                }
+                return { success: true, value: this.storage[inputData.key], storage: this.storage };
+            }
+        }
+        
+        class CacheFunc extends FuncNode {
+            constructor(config) {
+                super(config);
+                this.cache = {};
+            }
+            _execute(inputData) {
+                const action = inputData.action || 'get';
+                if (action === 'set') {
+                    this.cache[inputData.key] = { value: inputData.value, time: Date.now() };
+                    return { success: true, message: `已缓存 ${inputData.key}` };
+                }
+                if (action === 'stats') {
+                    return { success: true, total: Object.keys(this.cache).length };
+                }
+                const entry = this.cache[inputData.key];
+                return { success: true, found: !!entry, value: entry?.value };
+            }
+        }
+        
+        class LoggerFunc extends FuncNode {
+            constructor(config) {
+                super(config);
+                this.logs = [];
+            }
+            _execute(inputData) {
+                const action = inputData.action || 'log';
+                if (action === 'log') {
+                    this.logs.push({ level: inputData.level, message: inputData.message, time: Date.now() });
+                    return { success: true, count: this.logs.length };
+                }
+                return { success: true, logs: this.logs.slice(-10), count: this.logs.length };
+            }
+        }
+        
+        function runTransitivity() {
+            const result = scheduler.executeByName('传递推理', {
+                rules: [
+                    { subject: 'A', predicate: '是', obj: 'B' },
+                    { subject: 'B', predicate: '有', obj: 'C' }
+                ]
+            });
+            document.getElementById('transitivityOutput').textContent = 
+                `输入规则:\n  A 是 B\n  B 有 C\n\n推导结果:\n  A 有 C\n\n新规则数: ${result.count}`;
+        }
+        
+        function runInduction() {
+            const result = scheduler.executeByName('归纳推理', {
+                cases: [
+                    { subject: '鸟1', predicate: '会', obj: '飞' },
+                    { subject: '鸟2', predicate: '会', obj: '飞' },
+                    { subject: '鸟3', predicate: '会', obj: '飞' }
+                ]
+            });
+            document.getElementById('inductionOutput').textContent = 
+                `输入案例:\n  鸟1 会 飞\n  鸟2 会 飞\n  鸟3 会 飞\n\n发现模式:\n  会→飞 (出现 3 次)\n\n模式数: ${result.count}`;
+        }
+        
+        function runDeduction() {
+            const result = scheduler.executeByName('演绎推理', {
+                rules: [{ subject: '人', predicate: '是', obj: '会死的', conclusion: '是' }],
+                facts: [{ subject: '苏格拉底', predicate: '是', obj: '人' }]
+            });
+            document.getElementById('deductionOutput').textContent = 
+                `规则: 人 是 会死的\n事实: 苏格拉底 是 人\n\n结论: 苏格拉底 是 会死的\n\n结论数: ${result.count}`;
+        }
+        
+        function runCausal() {
+            const output = `因果推理演示\n\n添加规则:\n  下雨 → 地面湿\n  地面湿 → 滑倒\n\n分析事件 "滑倒":\n  可能原因: 地面湿\n\n预测 "下雨" 的结果:\n  可能结果: 地面湿`;
+            document.getElementById('causalOutput').textContent = output;
+        }
+        
+        function generatePoetry() {
+            const theme = document.getElementById('poetryTheme').value;
+            const style = document.getElementById('poetryStyle').value;
+            const result = scheduler.executeByName('写诗', { theme, style, lines: 4 });
+            document.getElementById('poetryOutput').textContent = 
+                `主题: ${result.theme}\n风格: ${result.style}\n\n${result.poem.join('\n')}`;
+        }
+        
+        function generateArticle() {
+            const topic = document.getElementById('articleTopic').value;
+            const output = `文章生成\n\n标题: 关于${topic}的思考\n\n引言:\n${topic}是当今社会的重要话题...\n\n正文:\n首先，我们需要了解${topic}的基本概念...\n\n结论:\n综上所述，${topic}具有重要意义...`;
+            document.getElementById('articleOutput').textContent = output;
+        }
+        
+        function generateIdeas() {
+            const problem = document.getElementById('creativityProblem').value;
+            const output = `创意生成\n\n问题: ${problem}\n\n创意方案:\n1. 将两个不相关的概念结合起来\n2. 从相反的角度思考问题\n3. 借鉴其他领域的解决方案`;
+            document.getElementById('creativityOutput').textContent = output;
+        }
+        
+        function analyzeSentiment() {
+            const text = document.getElementById('sentimentText').value;
+            const result = scheduler.executeByName('情感分析', { text });
+            document.getElementById('sentimentOutput').textContent = 
+                `文本: ${result.text}\n\n情感: ${result.label}\n积极词: ${result.pos}\n消极词: ${result.neg}`;
+        }
+        
+        function analyzeTimeSeries() {
+            const dataStr = document.getElementById('timeSeriesData').value;
+            const data = dataStr.split(',').map(x => parseFloat(x.trim()));
+            const mean = data.reduce((a, b) => a + b, 0) / data.length;
+            const trend = data[data.length - 1] > data[0] ? '上升' : '下降';
+            document.getElementById('timeSeriesOutput').textContent = 
+                `数据: ${data.join(', ')}\n\n统计:\n  数据量: ${data.length}\n  平均值: ${mean.toFixed(2)}\n  最小值: ${Math.min(...data)}\n  最大值: ${Math.max(...data)}\n  趋势: ${trend}`;
+        }
+        
+        function calculateBayes() {
+            const prior = parseFloat(document.getElementById('probPrior').value);
+            const likelihood = parseFloat(document.getElementById('probLikelihood').value);
+            const evidence = parseFloat(document.getElementById('probEvidence').value);
+            const posterior = (likelihood * prior) / evidence;
+            document.getElementById('probabilityOutput').textContent = 
+                `贝叶斯定理计算\n\nP(A|B) = P(B|A) × P(A) / P(B)\n\n先验概率 P(A): ${prior}\n似然 P(B|A): ${likelihood}\n证据 P(B): ${evidence}\n\n后验概率 P(A|B): ${posterior.toFixed(4)}`;
+        }
+        
+        function runClustering() {
+            const k = parseInt(document.getElementById('clusterK').value);
+            const data = ['A', 'B', 'C', 'D', 'E', 'F'];
+            const clusters = {};
+            for (let i = 0; i < data.length; i++) {
+                const cluster = i % k;
+                if (!clusters[cluster]) clusters[cluster] = [];
+                clusters[cluster].push(data[i]);
+            }
+            let output = `聚类分析\n\n数据: ${data.join(', ')}\n聚类数 K: ${k}\n\n结果:\n`;
+            for (const [c, items] of Object.entries(clusters)) {
+                output += `  簇 ${c}: ${items.join(', ')}\n`;
+            }
+            document.getElementById('clusteringOutput').textContent = output;
+        }
+        
+        function setMemory() {
+            const key = document.getElementById('memoryKey').value;
+            const value = document.getElementById('memoryValue').value;
+            scheduler.executeByName('记忆', { action: 'set', key, value });
+            document.getElementById('memoryOutput').textContent = `已存储: ${key} = ${value}`;
+        }
+        
+        function getMemory() {
+            const key = document.getElementById('memoryKey').value;
+            const result = scheduler.executeByName('记忆', { action: 'get', key });
+            document.getElementById('memoryOutput').textContent = `读取: ${key} = ${result.value || '(空)'}`;
+        }
+        
+        function setCache() {
+            const key = document.getElementById('cacheKey').value;
+            const value = document.getElementById('cacheValue').value;
+            scheduler.executeByName('缓存', { action: 'set', key, value });
+            document.getElementById('cacheOutput').textContent = `已缓存: ${key} = ${value}`;
+        }
+        
+        function getCache() {
+            const key = document.getElementById('cacheKey').value;
+            const result = scheduler.executeByName('缓存', { action: 'get', key });
+            document.getElementById('cacheOutput').textContent = `缓存: ${key} = ${result.value || '(未找到)'}`;
+        }
+        
+        function cacheStats() {
+            const result = scheduler.executeByName('缓存', { action: 'stats' });
+            document.getElementById('cacheOutput').textContent = `缓存统计: ${result.total} 条`;
+        }
+        
+        function addLog() {
+            const message = document.getElementById('logMessage').value;
+            const level = document.getElementById('logLevel').value;
+            scheduler.executeByName('日志', { action: 'log', level, message });
+            document.getElementById('logOutput').textContent = `已添加日志: [${level}] ${message}`;
+        }
+        
+        function getLogs() {
+            const result = scheduler.executeByName('日志', { action: 'get' });
+            let output = `日志记录 (${result.count} 条)\n\n`;
+            result.logs.forEach(l => {
+                output += `[${l.level}] ${l.message}\n`;
+            });
+            document.getElementById('logOutput').textContent = output;
+        }
+        
+        function transformToList() {
+            const data = document.getElementById('transformData').value;
+            const result = data.split(',');
+            document.getElementById('transformOutput').textContent = `转列表:\n${JSON.stringify(result)}`;
+        }
+        
+        function transformToDict() {
+            const data = document.getElementById('transformData').value;
+            const arr = data.split(',');
+            const result = {};
+            arr.forEach((v, i) => result[i] = v);
+            document.getElementById('transformOutput').textContent = `转字典:\n${JSON.stringify(result, null, 2)}`;
+        }
+        
+        function transformUnique() {
+            const data = document.getElementById('transformData').value;
+            const result = [...new Set(data.split(','))];
+            document.getElementById('transformOutput').textContent = `去重:\n${result.join(', ')}`;
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const container = document.getElementById('chatContainer');
+            container.innerHTML += `<div class="chat-message chat-user"><div class="chat-role">用户</div>${message}</div>`;
+            
+            const result = scheduler.executeByName('对话', { message });
+            
+            setTimeout(() => {
+                container.innerHTML += `<div class="chat-message chat-bot"><div class="chat-role">助手</div>${result.response}</div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 300);
+            
+            input.value = '';
+        }
+        
+        function clearChat() {
+            document.getElementById('chatContainer').innerHTML = '';
+        }
+        
+        window.onload = initSystem;
+    </script>
+</body>
+</html>

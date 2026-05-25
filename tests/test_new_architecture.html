@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 DTN 新架构完整测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .test-title {
+            font-size: 1.3em;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .test-result {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            color: #00ff88;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .health-bar {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #00ff88);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+        
+        .pass {
+            color: #00ff88;
+        }
+        
+        .fail {
+            color: #ff4444;
+        }
+        
+        .run-all-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            border: none;
+            border-radius: 15px;
+            color: #000;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: transform 0.2s;
+        }
+        
+        .run-all-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.2));
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .summary h2 {
+            color: #00ff88;
+            margin-bottom: 20px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .summary-item .label {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .summary-item .value {
+            color: #00d4ff;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 DTN 新架构完整测试</h1>
+        
+        <button class="run-all-btn" onclick="runAllTests()">▶ 运行所有测试</button>
+        
+        <div class="test-section">
+            <div class="test-title">📊 测试概览</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">总测试数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passedTests">0</div>
+                    <div class="stat-label">通过</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failedTests">0</div>
+                    <div class="stat-label">失败</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="healthScore">0</div>
+                    <div class="stat-label">健康度</div>
+                </div>
+            </div>
+            <div class="health-bar">
+                <div class="health-fill" id="healthBar" style="width: 0%">0%</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试1：核心类</div>
+            <div class="test-result" id="test1">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试2：注册表</div>
+            <div class="test-result" id="test2">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试3：调度器</div>
+            <div class="test-result" id="test3">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试4：推理技能</div>
+            <div class="test-result" id="test4">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试5：生成技能</div>
+            <div class="test-result" id="test5">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试6：分析技能</div>
+            <div class="test-result" id="test6">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试7：功能节点</div>
+            <div class="test-result" id="test7">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试8：知识库</div>
+            <div class="test-result" id="test8">等待运行...</div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试9：系统健康度</div>
+            <div class="test-result" id="test9">等待运行...</div>
+        </div>
+        
+        <div class="summary">
+            <h2>✅ 测试总结</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="label">核心类</div>
+                    <div class="value" id="summaryCore">-</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">技能节点</div>
+                    <div class="value" id="summarySkills">-</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">功能节点</div>
+                    <div class="value" id="summaryFuncs">-</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">规则节点</div>
+                    <div class="value" id="summaryRules">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const NodeType = {
+            NODE: 'node',
+            SKILL: 'skill',
+            RULE: 'rule',
+            DATA: 'data',
+            FUNC: 'func'
+        };
+        
+        class Node {
+            constructor(config = {}) {
+                this.id = Math.random().toString(36).substr(2, 8);
+                this.config = config;
+                this.name = config.name || this.constructor.name;
+                this.description = config.description || '';
+                this.enabled = config.enabled !== false;
+                this.createdAt = Date.now();
+                this.updatedAt = Date.now();
+                this.metadata = {};
+            }
+            
+            getId() { return this.id; }
+            getName() { return this.name; }
+            getType() { return NodeType.NODE; }
+            is_enabled() { return this.enabled; }
+            enable() { this.enabled = true; }
+            disable() { this.enabled = false; }
+        }
+        
+        class SkillNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.priority = config.priority || 1.0;
+                this.confidence = config.confidence || 1.0;
+                this.usageCount = 0;
+            }
+            
+            getType() { return NodeType.SKILL; }
+            getPriority() { return this.priority; }
+            getConfidence() { return this.confidence; }
+            incrementUsage() { this.usageCount++; }
+            getUsageCount() { return this.usageCount; }
+        }
+        
+        class RuleNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.rules = [];
+            }
+            
+            getType() { return NodeType.RULE; }
+            addRule(rule) { this.rules.push(rule); }
+            getRules() { return this.rules; }
+            clearRules() { this.rules = []; }
+        }
+        
+        class DataNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.data = {};
+            }
+            
+            getType() { return NodeType.DATA; }
+            set(key, value) { this.data[key] = value; }
+            get(key) { return this.data[key]; }
+            getAll() { return this.data; }
+            clear() { this.data = {}; }
+        }
+        
+        class FuncNode extends Node {
+            constructor(config = {}) {
+                super(config);
+                this.performanceMetrics = {
+                    executions: 0,
+                    totalTime: 0,
+                    errors: 0
+                };
+            }
+            
+            getType() { return NodeType.FUNC; }
+            execute(inputData) {
+                const startTime = Date.now();
+                try {
+                    const result = this._execute(inputData);
+                    this.performanceMetrics.executions++;
+                    this.performanceMetrics.totalTime += Date.now() - startTime;
+                    return result;
+                } catch (error) {
+                    this.performanceMetrics.errors++;
+                    throw error;
+                }
+            }
+        }
+        
+        class NodeRegistry {
+            constructor() {
+                this.nodes = {};
+                this.nodesByType = {
+                    [NodeType.NODE]: [],
+                    [NodeType.SKILL]: [],
+                    [NodeType.RULE]: [],
+                    [NodeType.DATA]: [],
+                    [NodeType.FUNC]: []
+                };
+            }
+            
+            register(node) {
+                const nodeId = node.getId();
+                if (nodeId in this.nodes) return false;
+                
+                this.nodes[nodeId] = node;
+                const nodeType = node.getType();
+                if (nodeType in this.nodesByType) {
+                    this.nodesByType[nodeType].push(nodeId);
+                }
+                return true;
+            }
+            
+            getNode(nodeId) { return this.nodes[nodeId]; }
+            getNodesByType(type) {
+                return this.nodesByType[type].map(id => this.nodes[id]);
+            }
+            getStats() {
+                const total = Object.keys(this.nodes).length;
+                const enabled = Object.values(this.nodes).filter(n => n.is_enabled()).length;
+                return {
+                    totalNodes: total,
+                    enabledNodes: enabled,
+                    skillNodes: this.nodesByType[NodeType.SKILL].length,
+                    ruleNodes: this.nodesByType[NodeType.RULE].length,
+                    dataNodes: this.nodesByType[NodeType.DATA].length,
+                    funcNodes: this.nodesByType[NodeType.FUNC].length
+                };
+            }
+        }
+        
+        class NodeScheduler {
+            constructor(registry) {
+                this.registry = registry;
+                this.executionHistory = [];
+            }
+            
+            executeNode(nodeId, inputData) {
+                const node = this.registry.getNode(nodeId);
+                if (!node) throw new Error(`节点不存在: ${nodeId}`);
+                if (!node.is_enabled()) throw new Error(`节点已禁用: ${nodeId}`);
+                
+                const result = node.execute ? node.execute(inputData) : node._execute(inputData);
+                
+                this.executionHistory.push({
+                    nodeId,
+                    nodeName: node.getName(),
+                    nodeType: node.getType(),
+                    timestamp: Date.now(),
+                    success: true
+                });
+                
+                return result;
+            }
+            
+            executeByName(name, inputData) {
+                const nodes = Object.values(this.registry.nodes);
+                const node = nodes.find(n => n.getName() === name);
+                if (!node) throw new Error(`节点不存在: ${name}`);
+                return this.executeNode(node.getId(), inputData);
+            }
+            
+            getHistory() { return this.executionHistory; }
+        }
+        
+        class ReasoningSkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const action = inputData.action || 'reason';
+                
+                if (action === 'reason') {
+                    const premises = inputData.premises || [];
+                    return {
+                        success: true,
+                        action: 'reason',
+                        premises: premises,
+                        conclusion: premises.length > 0 ? '推导结论...' : '无前提'
+                    };
+                }
+                return { success: false, message: '未知操作' };
+            }
+        }
+        
+        class GenerationSkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const type = inputData.type || 'text';
+                const length = inputData.length || 1;
+                
+                const templates = {
+                    poetry: ['春', '夏', '秋', '冬'],
+                    article: ['引言', '正文', '结论'],
+                    text: ['内容']
+                };
+                
+                const content = templates[type] || templates.text;
+                return {
+                    success: true,
+                    type: type,
+                    content: content.slice(0, length),
+                    length: length
+                };
+            }
+        }
+        
+        class TransitivitySkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const rules = inputData.rules || [];
+                const newRules = [];
+                
+                for (const rule1 of rules) {
+                    if (rule1.predicate !== '是') continue;
+                    for (const rule2 of rules) {
+                        if (rule2.subject === rule1.obj && rule2.predicate === '有') {
+                            newRules.push({
+                                subject: rule1.subject,
+                                predicate: '有',
+                                obj: rule2.obj,
+                                confidence: Math.min(rule1.confidence || 1, rule2.confidence || 1) * 0.9
+                            });
+                        }
+                    }
+                }
+                
+                return {
+                    success: true,
+                    inputRules: rules.length,
+                    newRules: newRules,
+                    newRulesCount: newRules.length
+                };
+            }
+        }
+        
+        class PoetrySkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const theme = inputData.theme || '自然';
+                const style = inputData.style || '五言';
+                const lines = inputData.lines || 4;
+                
+                const poem = [];
+                for (let i = 0; i < lines; i++) {
+                    poem.push(`${theme}之句${i + 1}`);
+                }
+                
+                return {
+                    success: true,
+                    theme: theme,
+                    style: style,
+                    poem: poem
+                };
+            }
+        }
+        
+        class SentimentSkill extends SkillNode {
+            execute(inputData) {
+                this.incrementUsage();
+                const text = inputData.text || '';
+                
+                const positive = ['好', '棒', '优秀', '喜欢', '爱', '开心'];
+                const negative = ['坏', '差', '糟糕', '讨厌', '恨', '伤心'];
+                
+                let posCount = 0, negCount = 0;
+                for (const word of positive) {
+                    if (text.includes(word)) posCount++;
+                }
+                for (const word of negative) {
+                    if (text.includes(word)) negCount++;
+                }
+                
+                let sentiment = 'neutral';
+                let label = '中性';
+                if (posCount > negCount) {
+                    sentiment = 'positive';
+                    label = '积极';
+                } else if (negCount > posCount) {
+                    sentiment = 'negative';
+                    label = '消极';
+                }
+                
+                return {
+                    success: true,
+                    text: text,
+                    sentiment: sentiment,
+                    label: label
+                };
+            }
+        }
+        
+        class KnowledgeBase extends RuleNode {
+            constructor(config = {}) {
+                super(config);
+                this.rulesBySubject = {};
+                this.rulesByPredicate = {};
+                this.rulesByObj = {};
+            }
+            
+            addRule(rule) {
+                super.addRule(rule);
+                const ruleId = this.rules.length - 1;
+                
+                if (rule.subject) {
+                    if (!this.rulesBySubject[rule.subject]) {
+                        this.rulesBySubject[rule.subject] = [];
+                    }
+                    this.rulesBySubject[rule.subject].push(ruleId);
+                }
+            }
+            
+            queryBySubject(subject) {
+                if (!this.rulesBySubject[subject]) return [];
+                return this.rulesBySubject[subject].map(i => this.rules[i]);
+            }
+            
+            getStats() {
+                return {
+                    totalRules: this.rules.length,
+                    uniqueSubjects: Object.keys(this.rulesBySubject).length
+                };
+            }
+            
+            execute(inputData) {
+                const action = inputData.action || 'query';
+                
+                if (action === 'add') {
+                    this.addRule(inputData.rule);
+                    return { success: true, message: '规则已添加' };
+                }
+                
+                if (action === 'stats') {
+                    return { success: true, stats: this.getStats() };
+                }
+                
+                return { success: true, rules: this.rules };
+            }
+        }
+        
+        class MemoryFunc extends FuncNode {
+            constructor(config = {}) {
+                super(config);
+                this.storage = {};
+            }
+            
+            _execute(inputData) {
+                const action = inputData.action || 'get';
+                
+                if (action === 'set') {
+                    this.storage[inputData.key] = inputData.value;
+                    return { success: true, message: `已设置 ${inputData.key}` };
+                }
+                
+                if (action === 'get') {
+                    return { success: true, value: this.storage[inputData.key] };
+                }
+                
+                return { success: true, storage: this.storage };
+            }
+        }
+        
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+        
+        function updateStats() {
+            document.getElementById('totalTests').textContent = testResults.total;
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+            
+            const health = testResults.total > 0 
+                ? Math.round((testResults.passed / testResults.total) * 100) 
+                : 0;
+            
+            document.getElementById('healthScore').textContent = health;
+            document.getElementById('healthBar').style.width = health + '%';
+            document.getElementById('healthBar').textContent = health + '%';
+        }
+        
+        function runTest(testId, testFn) {
+            testResults.total++;
+            const element = document.getElementById(testId);
+            
+            try {
+                const result = testFn();
+                testResults.passed++;
+                element.innerHTML = `<span class="pass">✓ 通过</span>\n\n${result}`;
+            } catch (error) {
+                testResults.failed++;
+                element.innerHTML = `<span class="fail">✗ 失败</span>\n\n错误: ${error.message}`;
+            }
+            
+            updateStats();
+        }
+        
+        function test1_CoreClasses() {
+            let output = '【NodeType 枚举】\n';
+            for (const key in NodeType) {
+                output += `  ${key}: ${NodeType[key]}\n`;
+            }
+            
+            output += '\n【创建基类实例】\n';
+            
+            const skill = new SkillNode({ name: '测试技能' });
+            output += `  SkillNode: ${skill.name}, 类型: ${skill.getType()}\n`;
+            
+            const rule = new RuleNode({ name: '测试规则' });
+            output += `  RuleNode: ${rule.name}, 类型: ${rule.getType()}\n`;
+            
+            const data = new DataNode({ name: '测试数据' });
+            output += `  DataNode: ${data.name}, 类型: ${data.getType()}\n`;
+            
+            const func = new FuncNode({ name: '测试功能' });
+            output += `  FuncNode: ${func.name}, 类型: ${func.getType()}\n`;
+            
+            return output;
+        }
+        
+        function test2_Registry() {
+            const registry = new NodeRegistry();
+            
+            const skill1 = new ReasoningSkill({ name: '推理1' });
+            const skill2 = new GenerationSkill({ name: '生成1' });
+            const rule1 = new KnowledgeBase({ name: '知识库1' });
+            const data1 = new DataNode({ name: '数据1' });
+            const func1 = new MemoryFunc({ name: '记忆1' });
+            
+            registry.register(skill1);
+            registry.register(skill2);
+            registry.register(rule1);
+            registry.register(data1);
+            registry.register(func1);
+            
+            const stats = registry.getStats();
+            
+            let output = '【注册节点】\n';
+            output += `  总节点: ${stats.totalNodes}\n`;
+            output += `  技能节点: ${stats.skillNodes}\n`;
+            output += `  规则节点: ${stats.ruleNodes}\n`;
+            output += `  数据节点: ${stats.dataNodes}\n`;
+            output += `  功能节点: ${stats.funcNodes}\n`;
+            
+            return output;
+        }
+        
+        function test3_Scheduler() {
+            const registry = new NodeRegistry();
+            const scheduler = new NodeScheduler(registry);
+            
+            const reasoning = new ReasoningSkill({ name: '推理引擎' });
+            const generation = new GenerationSkill({ name: '生成引擎' });
+            
+            registry.register(reasoning);
+            registry.register(generation);
+            
+            let output = '【执行推理】\n';
+            const result1 = scheduler.executeByName('推理引擎', {
+                action: 'reason',
+                premises: ['所有人都会死', '苏格拉底是人']
+            });
+            output += `  结果: ${JSON.stringify(result1)}\n`;
+            
+            output += '\n【执行生成】\n';
+            const result2 = scheduler.executeByName('生成引擎', {
+                type: 'poetry',
+                length: 2
+            });
+            output += `  结果: ${JSON.stringify(result2)}\n`;
+            
+            output += '\n【执行历史】\n';
+            const history = scheduler.getHistory();
+            output += `  执行次数: ${history.length}\n`;
+            
+            return output;
+        }
+        
+        function test4_ReasoningSkills() {
+            let output = '【传递推理】\n';
+            const transitivity = new TransitivitySkill({ name: '传递推理' });
+            const result1 = transitivity.execute({
+                rules: [
+                    { subject: 'A', predicate: '是', obj: 'B' },
+                    { subject: 'B', predicate: '有', obj: 'C' }
+                ]
+            });
+            output += `  新规则数: ${result1.newRulesCount}\n`;
+            
+            return output;
+        }
+        
+        function test5_GenerationSkills() {
+            let output = '【写诗】\n';
+            const poetry = new PoetrySkill({ name: '写诗' });
+            const result = poetry.execute({
+                theme: '春天',
+                style: '五言',
+                lines: 4
+            });
+            output += `  主题: ${result.theme}\n`;
+            output += `  诗句: ${result.poem.join(', ')}\n`;
+            
+            return output;
+        }
+        
+        function test6_AnalysisSkills() {
+            let output = '【情感分析】\n';
+            const sentiment = new SentimentSkill({ name: '情感分析' });
+            const result = sentiment.execute({
+                text: '今天天气真好，我很开心！'
+            });
+            output += `  文本: ${result.text}\n`;
+            output += `  情感: ${result.label}\n`;
+            
+            return output;
+        }
+        
+        function test7_FunctionNodes() {
+            let output = '【记忆功能】\n';
+            const memory = new MemoryFunc({ name: '记忆' });
+            memory.execute({ action: 'set', key: 'name', value: '张三' });
+            const result = memory.execute({ action: 'get', key: 'name' });
+            output += `  存储: name = ${result.value}\n`;
+            
+            return output;
+        }
+        
+        function test8_KnowledgeBase() {
+            const kb = new KnowledgeBase({ name: '知识库' });
+            
+            let output = '【添加规则】\n';
+            kb.execute({ action: 'add', rule: { subject: 'AI', predicate: '是', obj: '人工智能' } });
+            kb.execute({ action: 'add', rule: { subject: 'AI', predicate: '可以', obj: '学习' } });
+            output += '  已添加 2 条规则\n';
+            
+            output += '\n【查询规则】\n';
+            const results = kb.queryBySubject('AI');
+            output += `  查询 subject='AI': ${results.length} 条\n`;
+            
+            output += '\n【统计信息】\n';
+            const stats = kb.getStats();
+            output += `  总规则: ${stats.totalRules}\n`;
+            
+            return output;
+        }
+        
+        function test9_HealthCheck() {
+            const registry = new NodeRegistry();
+            
+            const skills = [
+                new ReasoningSkill({ name: '推理' }),
+                new GenerationSkill({ name: '生成' }),
+                new SentimentSkill({ name: '分析' })
+            ];
+            
+            const rules = [new KnowledgeBase({ name: '知识库' })];
+            const dataNodes = [new DataNode({ name: '数据' })];
+            const funcs = [new MemoryFunc({ name: '记忆' })];
+            
+            for (const node of [...skills, ...rules, ...dataNodes, ...funcs]) {
+                registry.register(node);
+            }
+            
+            const stats = registry.getStats();
+            
+            let output = '【节点统计】\n';
+            output += `  总节点: ${stats.totalNodes}\n`;
+            output += `  技能节点: ${stats.skillNodes}\n`;
+            output += `  规则节点: ${stats.ruleNodes}\n`;
+            output += `  数据节点: ${stats.dataNodes}\n`;
+            output += `  功能节点: ${stats.funcNodes}\n`;
+            
+            output += '\n【健康度评估】\n';
+            let healthScore = 0;
+            
+            if (stats.skillNodes >= 3) {
+                healthScore += 30;
+                output += '  ✓ 技能节点充足 (+30)\n';
+            }
+            
+            if (stats.ruleNodes >= 1) {
+                healthScore += 20;
+                output += '  ✓ 规则节点存在 (+20)\n';
+            }
+            
+            if (stats.dataNodes >= 1) {
+                healthScore += 20;
+                output += '  ✓ 数据节点存在 (+20)\n';
+            }
+            
+            if (stats.totalNodes >= 5) {
+                healthScore += 15;
+                output += '  ✓ 节点数量充足 (+15)\n';
+            }
+            
+            if (stats.funcNodes >= 1) {
+                healthScore += 15;
+                output += '  ✓ 功能节点存在 (+15)\n';
+            }
+            
+            output += `\n健康分数: ${healthScore}/100\n`;
+            
+            if (healthScore >= 90) {
+                output += '评级: 优秀 ⭐⭐⭐⭐⭐\n';
+            } else if (healthScore >= 70) {
+                output += '评级: 良好 ⭐⭐⭐\n';
+            } else {
+                output += '评级: 需改进 ⭐\n';
+            }
+            
+            document.getElementById('summaryCore').textContent = '5个基类';
+            document.getElementById('summarySkills').textContent = stats.skillNodes + '个';
+            document.getElementById('summaryFuncs').textContent = stats.funcNodes + '个';
+            document.getElementById('summaryRules').textContent = stats.ruleNodes + '个';
+            
+            return output;
+        }
+        
+        function runAllTests() {
+            testResults = { total: 0, passed: 0, failed: 0 };
+            
+            runTest('test1', test1_CoreClasses);
+            runTest('test2', test2_Registry);
+            runTest('test3', test3_Scheduler);
+            runTest('test4', test4_ReasoningSkills);
+            runTest('test5', test5_GenerationSkills);
+            runTest('test6', test6_AnalysisSkills);
+            runTest('test7', test7_FunctionNodes);
+            runTest('test8', test8_KnowledgeBase);
+            runTest('test9', test9_HealthCheck);
+        }
+        
+        window.onload = function() {
+            setTimeout(runAllTests, 500);
+        };
+    </script>
+</body>
+</html>
